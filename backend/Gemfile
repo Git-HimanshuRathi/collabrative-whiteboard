@@ -1,0 +1,23 @@
+source "https://rubygems.org"
+
+# Rails 8 API framework
+gem "rails", "~> 8.1.2"
+
+# Database
+gem "sqlite3", ">= 2.1"
+
+# Web server
+gem "puma", ">= 5.0"
+
+# Windows timezone support
+gem "tzinfo-data", platforms: %i[ windows jruby ]
+
+# Faster boot times
+gem "bootsnap", require: false
+
+# CORS support for Vue frontend
+gem "rack-cors"
+
+group :development, :test do
+  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+end
