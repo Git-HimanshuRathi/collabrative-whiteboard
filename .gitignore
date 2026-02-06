@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+vendor/bundle/
+
+# Build outputs
+dist/
+tmp/
+log/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ruby/Rails
+*.gem
+.bundle/
+coverage/
+storage/
+public/assets/
+
+# Vue/Vite
+*.local
+
+# SQLite
+*.sqlite3
+*.sqlite3-*
+
+# Secrets
+config/master.key
+config/credentials/*.key

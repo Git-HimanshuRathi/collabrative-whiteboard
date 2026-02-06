@@ -26,7 +26,7 @@ class WhiteboardChannel < ApplicationCable::Channel
 
   # Handle shape operations
   def shape(data)
-    broadcast({ type: "shape", action: data["action"], shape: data["shape"], user_id: user_id })
+    broadcast({ type: "shape", op: data["op"], shape: data["shape"], user_id: user_id })
   end
 
   # Handle cursor updates
