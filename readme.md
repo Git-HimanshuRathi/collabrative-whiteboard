@@ -1,125 +1,122 @@
-# Collaborative Whiteboard with Presence
+# Collaborative Whiteboard - Minimal Learning Version
 
-A real-time collaborative whiteboard where multiple users can draw, move, and delete shapes together. Built as a proof-of-concept for CircuitVerse real-time collaboration.
+A **super simple** real-time whiteboard to learn WebSockets with Vue + Rails.
 
-## 🎯 Features
-
-- **Draw rectangles** on a shared canvas
-- **Move & delete shapes** with selection tool
-- **Real-time sync** via WebSockets (ActionCable)
-- **See who's online** with user list and colored cursors
-- **URL-based rooms** — share a link to collaborate
-
-## 🏗️ Project Structure
+## 📁 Project Structure (Minimal!)
 
 ```
 collabrative-whiteboard/
-├── backend/                    # Ruby on Rails API
+├── backend/                          # Rails API (minimal)
 │   ├── app/
-│   │   └── channels/
-│   │       ├── application_cable/
-│   │       │   ├── connection.rb    # WebSocket connection handler
-│   │       │   └── channel.rb       # Base channel class
-│   │       ├── shape_channel.rb     # Shape CRUD sync
-│   │       └── presence_channel.rb  # User tracking & cursors
+│   │   ├── channels/
+│   │   │   ├── application_cable/
+│   │   │   │   ├── connection.rb     # ← WebSocket connection
+│   │   │   │   └── channel.rb
+│   │   │   └── whiteboard_channel.rb # ← ALL sync logic here!
+│   │   └── controllers/
 │   └── config/
-│       ├── cable.yml               # ActionCable config
-│       └── initializers/cors.rb    # CORS for Vue frontend
+│       ├── cable.yml                 # ActionCable config
+│       └── initializers/cors.rb      # CORS for Vue
 │
-├── frontend/                   # Vue 3 + Vite
+├── frontend/                         # Vue 3 (minimal)
 │   ├── src/
-│   │   ├── components/
-│   │   │   └── WhiteboardCanvas.vue  # Main canvas component
-│   │   ├── composables/
-│   │   │   ├── useActionCable.js     # WebSocket wrapper
-│   │   │   ├── useShapes.js          # Shape state management
-│   │   │   └── usePresence.js        # User presence tracking
-│   │   ├── views/
-│   │   │   ├── HomeView.vue          # Landing page
-│   │   │   └── RoomView.vue          # Room wrapper
-│   │   ├── router.js                 # Vue Router config
-│   │   ├── App.vue
+│   │   ├── App.vue                   # ← EVERYTHING in one file!
 │   │   └── main.js
 │   └── package.json
 │
 └── readme.md
 ```
 
+**Key files to study:**
+
+1. `backend/app/channels/whiteboard_channel.rb` - Server-side WebSocket
+2. `frontend/src/App.vue` - Client-side everything
+
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Ruby 3.2+
-- Node.js 18+
-- Xcode Command Line Tools (macOS)
-
-### 1. Start Backend (Rails)
+### Terminal 1: Start Rails
 
 ```bash
 cd backend
-bundle install
-rails server -p 3000
+bundle exec rails server -p 3000
 ```
 
-### 2. Start Frontend (Vue)
+### Terminal 2: Start Vue
 
 ```bash
 cd frontend
-npm install
 npm run dev
 ```
 
-### 3. Open in Browser
+### Open Browser
 
-- Visit: http://localhost:5173
-- Create or join a room
-- Open the same room URL in another browser window to test collaboration
+- Go to http://localhost:5173
+- Open another browser window to same URL
+- Draw in one → appears in the other! 🎉
 
-## 🧠 Architecture
+## 🔑 Key Concepts
+
+### WebSocket Flow
 
 ```
-┌─────────────────┐          WebSocket           ┌─────────────────┐
-│   Vue Frontend  │ ◄──────────────────────────► │  Rails Backend  │
-│   (port 5173)   │        ActionCable           │   (port 3000)   │
-└─────────────────┘                              └─────────────────┘
-        │                                                │
-        ├── WhiteboardCanvas.vue                        ├── ShapeChannel
-        ├── useShapes.js                                │   └── create/update/delete
-        └── usePresence.js                              └── PresenceChannel
-                                                            └── join/leave/cursor
+Browser A                    Rails Server                    Browser B
+    │                             │                              │
+    │──── subscribe ─────────────►│                              │
+    │                             │◄──── subscribe ──────────────│
+    │                             │                              │
+    │──── draw shape ────────────►│                              │
+    │                             │──── broadcast shape ────────►│
+    │◄──── broadcast shape ───────│                              │
 ```
 
-## 📡 WebSocket Channels
+### ActionCable Structure
 
-### ShapeChannel
+- **Connection** = One per browser tab
+- **Channel** = Like a "chat room" for messages
+- **Subscription** = Browser joins a channel
+- **Broadcast** = Send to everyone in channel
 
-Syncs shape operations across all users in a room:
+## 📚 Files Explained
 
-- `create` → broadcasts `shape_created`
-- `update` → broadcasts `shape_updated`
-- `delete` → broadcasts `shape_deleted`
+### `whiteboard_channel.rb` (Server)
 
-### PresenceChannel
+```ruby
+# When user draws a shape:
+def shape(data)
+  broadcast({ type: "shape", action: data["action"], shape: data["shape"] })
+end
+```
 
-Tracks users and cursors:
+### `App.vue` (Client)
 
-- Auto-broadcasts `user_joined` / `user_left`
-- `cursor` → broadcasts `cursor_moved`
-- Sends `user_list` to new joiners
+```javascript
+// Connect to WebSocket
+const consumer = createConsumer("ws://localhost:3000/cable");
+subscription = consumer.subscriptions.create(
+  { channel: "WhiteboardChannel", room: "demo" },
+  {
+    received(data) {
+      handleMessage(data);
+    },
+  },
+);
 
-## 🎨 What This Teaches
+// Send shape to server
+function sendShape(action, shape) {
+  subscription.perform("shape", { action, shape });
+}
+```
 
-| Skill                    | Relevance to CircuitVerse          |
-| ------------------------ | ---------------------------------- |
-| WebSockets (ActionCable) | Real-time sync backbone            |
-| Canvas API               | CircuitVerse simulator uses canvas |
-| Operation-based updates  | Same as circuit edits              |
-| Presence system          | Avatars, names, cursors            |
-| URL-based rooms          | Circuit sessions                   |
+## ✅ Features
 
-## ❌ Intentionally Not Included
+- Draw rectangles
+- Select and delete shapes
+- Real-time sync
+- See who's online
 
-- No CRDTs (simple broadcast model)
-- No persistence (memory only)
+## ❌ Intentionally Excluded
+
+- No routing (one room)
+- No persistence
 - No authentication
-- No permissions
+- No complex patterns
